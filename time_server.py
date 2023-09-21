@@ -1,4 +1,4 @@
-#time_server.py
+#time_server.py 성공
 import socket
 import time
 
