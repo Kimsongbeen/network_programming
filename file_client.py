@@ -3,7 +3,7 @@ import socket
 #클라이언트 소켓 생성
 s_sock = socket.socket()
 host = "localhost"
-port = int(input("Port No: "))
+port = 2500
 
 #서버에 연결
 s_sock.connect(host, port)
