@@ -2,7 +2,7 @@
 from socket import *
 
 port = 2500 #port number
-BUFSIZE = 1024  #수신 버퍼 사이즈
+BUFSIZE = 1024  #receive buffer size
 
 sock = socket(AF_INET, SOCK_STREAM)
 sock.bind(('',port))    #종단점과 소켓 결합. '임의 주소'
