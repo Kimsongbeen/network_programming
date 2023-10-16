@@ -1,14 +1,17 @@
+import os
 import tkinter as tk
 import threading
+from ssl import SOL_SOCKET
+
 import cv2
 import socket
 import numpy as np
 from PIL import Image, ImageTk
+from _socket import SO_REUSEADDR
 
 # 서버 IP 주소 및 포트 번호
 SERVER_IP = '127.0.0.1'
 SERVER_PORT = 12345
-
 
 # 웹캠 캡처를 위한 스레드
 class VideoStreamThread(threading.Thread):
@@ -28,8 +31,18 @@ class VideoStreamThread(threading.Thread):
 
 
 # 클라이언트 소켓 설정
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((SERVER_IP, SERVER_PORT))
+# client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# client_socket.connect(('127.0.0.1', SERVER_PORT))
+client_socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+try:
+    client_socket.connect((SERVER_IP,SERVER_PORT))
+    client_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+
+except ConnectionRefusedError:
+    print('서버에 연결할 수 없습니다.')
+    print('1. 서버의 ip주소와 포트번호가 올바른지 확인하십시오.')
+    print('2. 서버 실행 여부를 확인하십시오.')
+    os._exit(1)
 
 # GUI 생성
 root = tk.Tk()

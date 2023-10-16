@@ -9,26 +9,6 @@ from PIL import Image, ImageTk
 SERVER_IP = '127.0.0.1'
 SERVER_PORT = 12345
 
-# 웹캠 캡처를 위한 스레드
-class VideoStreamThread(threading.Thread):
-    def __init__(self, server_socket):
-        super().__init__()
-        self.server_socket = server_socket
-
-    def run(self):
-        cap = cv2.VideoCapture(0)  # 웹캠 캡처
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-            _, img_encoded = cv2.imencode('.jpg', frame)
-            img_bytes = img_encoded.tobytes()
-            self.server_socket.sendall(img_bytes)
-
-# 클라이언트 소켓 설정
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((SERVER_IP, SERVER_PORT))
-
 # GUI 생성
 root = tk.Tk()
 root.title("Video Streaming Client")
@@ -36,6 +16,20 @@ root.title("Video Streaming Client")
 # 비디오 프레임 표시
 frame = tk.Label(root)
 frame.pack()
+
+# 채팅 창
+chat_text = tk.Text(root, state=tk.DISABLED)
+chat_text.pack()
+
+# 클라이언트 소켓 설정
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+# 메시지 전송 함수
+def send_message():
+    message = entry.get()
+    client_socket.sendall(message.encode())
+    entry.delete(0, tk.END)
+
 
 # 서버로부터 비디오 스트리밍을 받아 화면에 표시하는 함수
 def receive_video_stream(frame_label=None):
@@ -52,22 +46,37 @@ def receive_video_stream(frame_label=None):
             print(e)
             break
 
+
+# 메시지 수신 함수
+def receive_message():
+    while True:
+        try:
+            message = client_socket.recvfrom(1024).decode('utf-8')
+            chat_text.config(state=tk.NORMAL)
+            chat_text.insert(tk.END, message + "\n")
+            chat_text.config(state=tk.DISABLED)
+        except Exception as e:
+            print(e)
+            break
+
+# 전송 버튼
+send_button = tk.Button(root, text="Send", command=send_message)
+send_button.pack()
+
 # 비디오 수신 스레드 시작
 video_thread = threading.Thread(target=receive_video_stream)
 video_thread.daemon = True
 video_thread.start()
 
-# 메시지 전송 함수
-def send_message():
-    message = entry.get()
-    client_socket.sendall(message.encode())
-    entry.delete(0, tk.END)
+# 메시지 수신 스레드 시작
+message_thread = threading.Thread(target=receive_message)
+message_thread.daemon = True
+message_thread.start()
 
-# GUI 구성요소 생성
-entry = tk.Entry(root, width=50)
+# 채팅 입력 상자
+entry = tk.Entry(root, width=30)
 entry.pack()
-send_button = tk.Button(root, text="Send", command=send_message)
-send_button.pack()
+
 
 # GUI 시작
 root.mainloop()
