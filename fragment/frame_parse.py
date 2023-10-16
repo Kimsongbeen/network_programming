@@ -11,7 +11,7 @@ frame_seq = ""
 msg = "hello world"
 print("전송 메시지", msg)
 for i in range(0,len(msg),SIZE):
-    frame_seq += capsule.frame(HEAD,addr,seqNo,msg[i:i+SIZE])
+    frame_seq += capsule.frame(HEAD, addr, seqNo, msg[i:i + SIZE])
     seqNo+=1
 sock.send(frame_seq.encode())
 msg = sock.recv(1024).decode()
